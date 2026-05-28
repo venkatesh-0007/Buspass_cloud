@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard - CloudPass</title>
+    <link rel="stylesheet" href="./css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="app-sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <a href="#" class="logo">
+                    <i class="fa-solid fa-bus"></i> CloudPass
+                </a>
+            </div>
+            <ul class="sidebar-nav">
+                <li><a href="#" class="active"><i class="fa-solid fa-id-card"></i> My Pass</a></li>
+                <li><a href="#"><i class="fa-solid fa-clock-rotate-left"></i> History</a></li>
+                <li><a href="#"><i class="fa-solid fa-user"></i> Profile</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="app-main">
+            <!-- Header -->
+            <header class="app-header">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <button class="btn-icon" id="mobile-menu-btn" style="display: none;"><i class="fa-solid fa-bars"></i></button>
+                    <h2 style="font-size: 1.125rem;">Dashboard</h2>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-icon" id="theme-toggle"><i class="fa-solid fa-moon"></i></button>
+                    <button class="btn btn-secondary" id="logout-btn">Logout</button>
+                </div>
+            </header>
+
+            <div class="app-content">
+                <div class="page-header">
+                    <h1 style="font-size: 1.5rem; margin-bottom: 0.5rem;">Welcome back, <span id="user-name">...</span>!</h1>
+                    <p>Manage your cloud bus pass and view your travel history.</p>
+                </div>
+
+                <div class="dashboard-grid">
+                    <!-- Left Column -->
+                    <div class="dashboard-col">
+                        
+                        <div id="no-pass-msg" class="card" style="padding: 2rem; text-align: center; margin-bottom: 1.5rem;">
+                            <i class="fa-solid fa-id-card" style="font-size: 3rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
+                            <h3>No Active Pass</h3>
+                            <p style="margin-top: 0.5rem; margin-bottom: 1rem;">You don't have an active or pending bus pass.</p>
+                        </div>
+
+                        <!-- Premium Pass Card -->
+                        <div id="premium-pass-card" class="premium-pass" style="margin-bottom: 1.5rem; max-width: 100%; display: none;">
+                            <div class="pass-header">
+                                <h3>Digital Bus Pass</h3>
+                                <span id="pass-badge" class="badge badge-success">Active</span>
+                            </div>
+                            <div class="pass-body">
+                                <img src="https://via.placeholder.com/80" alt="User Photo" class="pass-photo">
+                                <div class="pass-info">
+                                    <h2 id="pass-name">Loading...</h2>
+                                    <p style="margin-bottom: 0.5rem;">ID: CP-2026-9874</p>
+                                    <p><strong>Route:</strong> <span id="pass-route">Loading...</span></p>
+                                </div>
+                            </div>
+                            <div class="pass-footer">
+                                <p style="font-size: 0.75rem; color: rgba(255,255,255,0.7);">Valid Until: <span id="pass-valid">...</span></p>
+                                <i class="fa-solid fa-qrcode" style="font-size: 2.5rem; color: white;"></i>
+                            </div>
+                        </div>
+                        
+                        <!-- Quick Actions -->
+                        <div class="card" style="padding: 1.5rem;">
+                            <h3 style="margin-bottom: 1rem; font-size: 1rem;">Quick Actions</h3>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                <button id="btn-apply" class="btn btn-secondary" style="width: 100%; justify-content: flex-start;"><i class="fa-solid fa-file-pen text-primary"></i> Apply/Renew</button>
+                                <button class="btn btn-secondary" style="width: 100%; justify-content: flex-start;"><i class="fa-solid fa-route text-primary"></i> View Routes</button>
+                                <button class="btn btn-secondary" style="width: 100%; justify-content: flex-start;"><i class="fa-solid fa-file-invoice text-primary"></i> Receipts</button>
+                                <button class="btn btn-secondary" style="width: 100%; justify-content: flex-start; color: var(--danger);"><i class="fa-solid fa-triangle-exclamation"></i> Report Lost</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column -->
+                    <div class="dashboard-col">
+                        <!-- KPI Cards -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                            <div class="card kpi-card" style="padding: 1.25rem;">
+                                <div class="kpi-icon" style="width: 44px; height: 44px; font-size: 1.25rem;"><i class="fa-solid fa-calendar-day"></i></div>
+                                <div class="kpi-details">
+                                    <h3 style="font-size: 0.75rem;">Days Remaining</h3>
+                                    <p id="kpi-days" style="font-size: 1.5rem;">0</p>
+                                </div>
+                            </div>
+                            <div class="card kpi-card" style="padding: 1.25rem;">
+                                <div class="kpi-icon" style="width: 44px; height: 44px; font-size: 1.25rem;"><i class="fa-solid fa-bus"></i></div>
+                                <div class="kpi-details">
+                                    <h3 style="font-size: 0.75rem;">Trips this Month</h3>
+                                    <p style="font-size: 1.5rem;">18</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- History Table -->
+                        <div class="card" style="padding: 1.5rem;">
+                            <div style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+                                <h2 style="font-size: 1.125rem;">Recent Travel</h2>
+                            </div>
+                            <div class="table-container">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Date & Time</th>
+                                            <th>Route</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Today, 08:30 AM</td>
+                                            <td>Central to North</td>
+                                            <td><span class="badge badge-success">Boarded</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Yesterday, 05:45 PM</td>
+                                            <td>North to Central</td>
+                                            <td><span class="badge badge-success">Boarded</span></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Apply Modal -->
+    <div id="apply-modal" class="loader-overlay" style="display: none; align-items: center; justify-content: center; z-index: 100;">
+        <div class="card" style="padding: 2rem; width: 100%; max-width: 400px; position: relative;">
+            <button id="close-modal" class="btn-icon" style="position: absolute; top: 1rem; right: 1rem;"><i class="fa-solid fa-xmark"></i></button>
+            <h2 style="margin-bottom: 1.5rem;">Apply for Pass</h2>
+            <form id="apply-form">
+                <div class="form-group">
+                    <label>Select Route</label>
+                    <select id="route-select" class="form-control" required>
+                        <option value="" disabled selected>Choose a route...</option>
+                        <option value="Central to North Station">Central to North Station</option>
+                        <option value="University Express">University Express</option>
+                        <option value="Downtown - Suburb">Downtown - Suburb</option>
+                        <option value="Westside Route">Westside Route</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Duration</label>
+                    <select id="duration-select" class="form-control" required>
+                        <option value="30">1 Month (30 Days)</option>
+                        <option value="90">3 Months (90 Days)</option>
+                        <option value="180">6 Months (180 Days)</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem; padding: 0.75rem;">Submit Application</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notification Container -->
+    <div id="notification" class="notification"></div>
+    <div id="global-loader" class="loader-overlay"><div class="loader"></div></div>
+
+    <script src="./js/main.js"></script>
+    <script type="module">
+        import { auth, db } from './js/firebase-config.js';
+        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { doc, getDoc, collection, query, where, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        let currentUser = null;
+        let currentUserName = "User";
+
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            signOut(auth).then(() => {
+                window.location.href = 'index.html';
+            });
+        });
+
+        // Mobile sidebar toggle
+        const mobileBtn = document.getElementById('mobile-menu-btn');
+        const sidebar = document.getElementById('sidebar');
+        if (window.innerWidth <= 768) mobileBtn.style.display = 'block';
+        mobileBtn.addEventListener('click', () => sidebar.classList.toggle('open'));
+
+        // Modal Logic
+        const modal = document.getElementById('apply-modal');
+        const applyBtn = document.getElementById('btn-apply');
+        const closeBtn = document.getElementById('close-modal');
+        
+        applyBtn.addEventListener('click', () => modal.style.display = 'flex');
+        closeBtn.addEventListener('click', () => modal.style.display = 'none');
+
+        // Form Submit
+        document.getElementById('apply-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if(!currentUser) return;
+            
+            const route = document.getElementById('route-select').value;
+            const duration = parseInt(document.getElementById('duration-select').value);
+            
+            const appliedAt = new Date();
+            const validUntil = new Date();
+            validUntil.setDate(appliedAt.getDate() + duration);
+
+            toggleLoader(true);
+            try {
+                await addDoc(collection(db, "passes"), {
+                    userId: currentUser.uid,
+                    userName: currentUserName,
+                    route: route,
+                    status: 'pending',
+                    appliedAt: appliedAt.toISOString(),
+                    validUntil: validUntil.toISOString()
+                });
+                showNotification('Application submitted successfully!', 'success');
+                modal.style.display = 'none';
+                loadUserPass(currentUser.uid); // refresh
+            } catch (error) {
+                console.error("Error applying:", error);
+                showNotification('Failed to submit application', 'error');
+            }
+            toggleLoader(false);
+        });
+
+        async function loadUserPass(uid) {
+            const q = query(collection(db, "passes"), where("userId", "==", uid));
+            const querySnapshot = await getDocs(q);
+            
+            const passCard = document.getElementById('premium-pass-card');
+            const noPassMsg = document.getElementById('no-pass-msg');
+
+            if (querySnapshot.empty) {
+                passCard.style.display = 'none';
+                noPassMsg.style.display = 'block';
+                document.getElementById('kpi-days').innerText = '0';
+            } else {
+                const passes = [];
+                querySnapshot.forEach((doc) => passes.push(doc.data()));
+                passes.sort((a,b) => new Date(b.appliedAt) - new Date(a.appliedAt));
+                
+                const latestPass = passes[0];
+                passCard.style.display = 'block';
+                noPassMsg.style.display = 'none';
+                
+                document.getElementById('pass-route').innerText = latestPass.route;
+                document.getElementById('pass-valid').innerText = new Date(latestPass.validUntil).toLocaleDateString();
+                
+                const badge = document.getElementById('pass-badge');
+                badge.innerText = latestPass.status.toUpperCase();
+                badge.className = `badge badge-${latestPass.status === 'approved' ? 'success' : latestPass.status === 'rejected' ? 'danger' : 'warning'}`;
+
+                if(latestPass.status === 'approved') {
+                    const daysLeft = Math.ceil((new Date(latestPass.validUntil) - new Date()) / (1000 * 60 * 60 * 24));
+                    document.getElementById('kpi-days').innerText = daysLeft > 0 ? daysLeft : 0;
+                } else {
+                    document.getElementById('kpi-days').innerText = '-';
+                }
+            }
+        }
+
+        // FULLY FUNCTIONAL SECURITY GUARD
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = 'index.html';
+            } else {
+                if (user.email === 'admin@cloudpass.com') {
+                    window.location.href = 'admin.html';
+                    return;
+                }
+                currentUser = user;
+                try {
+                    const docRef = doc(db, "users", user.uid);
+                    const docSnap = await getDoc(docRef);
+                    if (docSnap.exists()) {
+                        const userData = docSnap.data();
+                        currentUserName = userData.fullName || 'User';
+                        document.getElementById('user-name').innerText = currentUserName;
+                        document.getElementById('pass-name').innerText = currentUserName;
+                    }
+                    await loadUserPass(user.uid);
+                } catch (error) {
+                    console.error("Error fetching user data:", error);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

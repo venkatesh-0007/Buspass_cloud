@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - CloudPass</title>
+    <link rel="stylesheet" href="./css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="app-sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <a href="#" class="logo">
+                    <i class="fa-solid fa-bus"></i> Admin
+                </a>
+            </div>
+            <ul class="sidebar-nav">
+                <li><a href="#" class="active"><i class="fa-solid fa-users"></i> Applications</a></li>
+                <li><a href="#"><i class="fa-solid fa-id-badge"></i> All Passes</a></li>
+                <li><a href="#"><i class="fa-solid fa-chart-pie"></i> Reports</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="app-main">
+            <!-- Header -->
+            <header class="app-header">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <button class="btn-icon" id="mobile-menu-btn" style="display: none;"><i class="fa-solid fa-bars"></i></button>
+                    <h2 style="font-size: 1.125rem;">Admin Overview</h2>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-icon" id="theme-toggle"><i class="fa-solid fa-moon"></i></button>
+                    <button class="btn btn-secondary" id="logout-btn">Logout</button>
+                </div>
+            </header>
+
+            <div class="app-content">
+                <div class="kpi-grid">
+                    <div class="card kpi-card">
+                        <div class="kpi-icon" style="background-color: var(--warning-bg); color: var(--warning);"><i class="fa-solid fa-file-signature"></i></div>
+                        <div class="kpi-details">
+                            <h3>Pending Applications</h3>
+                            <p id="stat-pending">0</p>
+                        </div>
+                    </div>
+                    <div class="card kpi-card">
+                        <div class="kpi-icon" style="background-color: var(--success-bg); color: var(--success);"><i class="fa-solid fa-check-circle"></i></div>
+                        <div class="kpi-details">
+                            <h3>Approved Passes</h3>
+                            <p id="stat-approved">0</p>
+                        </div>
+                    </div>
+                    <div class="card kpi-card">
+                        <div class="kpi-icon"><i class="fa-solid fa-users"></i></div>
+                        <div class="kpi-details">
+                            <h3>Total Users</h3>
+                            <p id="stat-users">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" style="padding: 1.5rem;">
+                    <div style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+                        <h2 style="font-size: 1.125rem;">Pass Applications</h2>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Route</th>
+                                    <th>Date Applied</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="applications-tbody">
+                                <tr>
+                                    <td colspan="5" style="text-align: center; color: var(--text-muted);">Loading applications...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Notification Container -->
+    <div id="notification" class="notification"></div>
+    <div id="global-loader" class="loader-overlay"><div class="loader"></div></div>
+
+    <script src="./js/main.js"></script>
+    <script type="module">
+        import { auth, db } from './js/firebase-config.js';
+        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { doc, getDoc, collection, getDocs, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            signOut(auth).then(() => {
+                window.location.href = 'index.html';
+            });
+        });
+
+        // Mobile sidebar toggle
+        const mobileBtn = document.getElementById('mobile-menu-btn');
+        const sidebar = document.getElementById('sidebar');
+        if (window.innerWidth <= 768) mobileBtn.style.display = 'block';
+        mobileBtn.addEventListener('click', () => sidebar.classList.toggle('open'));
+
+        async function loadAdminData() {
+            toggleLoader(true);
+            try {
+                // Fetch users count
+                const usersSnap = await getDocs(collection(db, "users"));
+                document.getElementById('stat-users').innerText = usersSnap.size;
+
+                // Fetch passes
+                const passesSnap = await getDocs(collection(db, "passes"));
+                let pending = 0;
+                let approved = 0;
+                const tbody = document.getElementById('applications-tbody');
+                tbody.innerHTML = '';
+
+                // Convert to array and sort by date descending
+                const passes = [];
+                passesSnap.forEach((docSnap) => passes.push({ id: docSnap.id, ...docSnap.data() }));
+                passes.sort((a,b) => new Date(b.appliedAt) - new Date(a.appliedAt));
+
+                if(passes.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center;">No applications found.</td></tr>`;
+                }
+
+                passes.forEach((data) => {
+                    if(data.status === 'pending') pending++;
+                    if(data.status === 'approved') approved++;
+
+                    const tr = document.createElement('tr');
+                    const statusClass = data.status === 'approved' ? 'success' : data.status === 'rejected' ? 'danger' : 'warning';
+                    
+                    let actionsHtml = '';
+                    if(data.status === 'pending') {
+                        actionsHtml = `
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button class="btn btn-primary" onclick="window.updateStatus('${data.id}', 'approved')" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;"><i class="fa-solid fa-check"></i></button>
+                                <button class="btn btn-danger" onclick="window.updateStatus('${data.id}', 'rejected')" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;"><i class="fa-solid fa-xmark"></i></button>
+                            </div>
+                        `;
+                    } else {
+                        actionsHtml = `<button class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" disabled>Reviewed</button>`;
+                    }
+
+                    tr.innerHTML = `
+                        <td><strong>${data.userName}</strong></td>
+                        <td>${data.route}</td>
+                        <td>${new Date(data.appliedAt).toLocaleDateString()}</td>
+                        <td><span class="badge badge-${statusClass}">${data.status.toUpperCase()}</span></td>
+                        <td>${actionsHtml}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                document.getElementById('stat-pending').innerText = pending;
+                document.getElementById('stat-approved').innerText = approved;
+
+            } catch(e) {
+                console.error("Admin Load Error", e);
+                document.getElementById('applications-tbody').innerHTML = `<tr><td colspan="5" style="text-align: center; color: red;">Error loading data.</td></tr>`;
+            }
+            toggleLoader(false);
+        }
+
+        // Global function for the inline onclick handlers in the table
+        window.updateStatus = async (docId, newStatus) => {
+            toggleLoader(true);
+            try {
+                const passRef = doc(db, "passes", docId);
+                await updateDoc(passRef, { status: newStatus });
+                showNotification(`Application ${newStatus}!`, 'success');
+                loadAdminData(); // refresh table
+            } catch(e) {
+                console.error(e);
+                showNotification('Failed to update status', 'error');
+            }
+            toggleLoader(false);
+        };
+
+        // FULLY FUNCTIONAL SECURITY GUARD
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = 'index.html';
+            } else {
+                if (user.email === 'admin@cloudpass.com') {
+                    loadAdminData();
+                    return;
+                }
+                try {
+                    const docRef = doc(db, "users", user.uid);
+                    const docSnap = await getDoc(docRef);
+                    if (docSnap.exists()) {
+                        const userData = docSnap.data();
+                        if (userData.role !== 'admin') {
+                            window.location.href = 'dashboard.html';
+                        } else {
+                            // User is an admin, load the admin data!
+                            loadAdminData();
+                        }
+                    } else {
+                        window.location.href = 'dashboard.html';
+                    }
+                } catch (error) {
+                    console.error("Error verifying admin:", error);
+                    window.location.href = 'dashboard.html';
+                }
+            }
+        });
+    </script>
+</body>
+</html>
