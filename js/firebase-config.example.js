@@ -3,7 +3,7 @@ import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyB2auvBhYB5MutqzaAlezQ8BOE6U_urnxg",
+  apiKey: "YOUR_API_KEY_HERE",
   authDomain: "cloud-bus-pass-de80d.firebaseapp.com",
   projectId: "cloud-bus-pass-de80d",
   storageBucket: "cloud-bus-pass-de80d.firebasestorage.app",
